@@ -1,0 +1,24 @@
+key,value
+record_id,0ca4f79e-6fa7-4d7a-bbfc-fe86698ed8ca
+record_name,Flatness Measurement 150x4 by 150x6
+source_pdf,Flatness Measurement 150x4 by 150x6.pdf
+saved_date,----/--/-- --:--:--
+work_name,ABC
+work_number,001
+operator,Tony
+comments,Test1
+total_crosswise_length_raw,600[mm] ( 150[mm] * 4 )
+crosswise_total_mm,600
+crosswise_segment_mm,150
+crosswise_segments_count,4
+total_lengthwise_length_raw,900[mm] ( 150[mm] * 6 )
+lengthwise_total_mm,900
+lengthwise_segment_mm,150
+lengthwise_segments_count,6
+flatness_um,
+meas_col_count,0
+meas_row_count,0
+meas_x_row_count,0
+meas_y_row_count,0
+res_col_count,5
+res_row_count,7

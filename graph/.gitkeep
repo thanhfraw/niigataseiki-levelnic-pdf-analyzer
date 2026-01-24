@@ -1,0 +1,2 @@
+# This file ensures the graph directory is tracked in git
+# All generated graph files in this directory are ignored by .gitignore

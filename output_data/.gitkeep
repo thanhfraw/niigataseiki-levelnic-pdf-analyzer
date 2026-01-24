@@ -1,0 +1,2 @@
+# This file ensures the output_data directory is tracked in git
+# All CSV and Excel files in this directory are ignored by .gitignore
