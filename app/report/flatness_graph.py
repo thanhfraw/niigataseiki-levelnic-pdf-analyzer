@@ -62,15 +62,15 @@ def generate_flatness_graph(rec, out_path: str):
         ValueError: Nếu cấu trúc dữ liệu không hợp lệ
     """
     # Get the base directory for data files (output_data)
-    # Navigate from app/report/flatness_graph.py -> project root -> output_data
-    project_root = Path(__file__).parent.parent.parent
-    data_dir = project_root / "output_data"
-    header_path = data_dir / "data_header.csv"
-    result_path = data_dir / "data_result.csv"
+    # Use os.getcwd() to match the same path used by storage.py and reporting.py
+    import os
+    data_dir = os.path.join(os.getcwd(), "output_data")
+    header_path = os.path.join(data_dir, "data_header.csv")
+    result_path = os.path.join(data_dir, "data_result.csv")
     
-    if not header_path.exists():
+    if not os.path.exists(header_path):
         raise FileNotFoundError(f"Header file not found: {header_path}")
-    if not result_path.exists():
+    if not os.path.exists(result_path):
         raise FileNotFoundError(f"Result file not found: {result_path}")
     
     # --- Read header data ---

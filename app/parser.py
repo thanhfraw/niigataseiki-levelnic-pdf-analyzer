@@ -315,8 +315,8 @@ def parse_record(lines: list[str], pdf_path: str, record_name: str) -> Record:
                 # dù có parse được hay không, bỏ qua dòng này
                 continue
 
-            # một số file ghi Flatness như một dòng không có ":" -> parse số
-            if ("Flatness" in line) and ("[um]" in line):
+            # một số file ghi Flatness/Maximum Offset như một dòng không có ":" -> parse số
+            if ("[um]" in line) and ("Flatness" in line or "Maximum Offset" in line or "maximum offset" in line.lower()):
                 f = first_number_in_text(line)
                 if f is not None:
                     rec.flatness_um = f

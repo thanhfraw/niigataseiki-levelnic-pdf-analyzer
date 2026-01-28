@@ -23,7 +23,7 @@ def get_config_dir(app_name: str = "pdf_to_csv") -> Path:
     """
     Get application config directory.
     Creates ~/.config/pdf_to_csv/ on Unix-like systems
-    Creates %APPDATA%\pdf_to_csv\ on Windows
+    Creates %APPDATA%\\pdf_to_csv\\ on Windows
     Falls back to ~/.pdf_to_csv/ if needed
     
     Args:
@@ -34,7 +34,7 @@ def get_config_dir(app_name: str = "pdf_to_csv") -> Path:
     
     Lấy thư mục config của ứng dụng.
     Tạo ~/.config/pdf_to_csv/ trên Unix-like systems
-    Tạo %APPDATA%\pdf_to_csv\ trên Windows
+    Tạo %APPDATA%\\pdf_to_csv\\ trên Windows
     Fallback về ~/.pdf_to_csv/ nếu cần
     
     Tham số:
@@ -112,6 +112,13 @@ class Config:
     def set_last_template(self, path: str):
         d = self._read()
         d["last_template"] = path
+        self._write(d)
+
+    def clear_last_template(self):
+        """Clear the saved template from config."""
+        d = self._read()
+        if "last_template" in d:
+            del d["last_template"]
         self._write(d)
 
     # Recent files helpers

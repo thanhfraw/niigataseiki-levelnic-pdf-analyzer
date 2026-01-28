@@ -1,5 +1,5 @@
 key,value
-record_id,0ca4f79e-6fa7-4d7a-bbfc-fe86698ed8ca
+record_id,2a5a65a0-53bc-421f-8b55-cd6c731ac677
 record_name,Flatness Measurement 150x4 by 150x6
 source_pdf,Flatness Measurement 150x4 by 150x6.pdf
 saved_date,----/--/-- --:--:--
@@ -15,7 +15,7 @@ total_lengthwise_length_raw,900[mm] ( 150[mm] * 6 )
 lengthwise_total_mm,900
 lengthwise_segment_mm,150
 lengthwise_segments_count,6
-flatness_um,
+flatness_um,1.4
 meas_col_count,0
 meas_row_count,0
 meas_x_row_count,0

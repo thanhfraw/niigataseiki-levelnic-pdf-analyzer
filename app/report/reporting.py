@@ -117,28 +117,64 @@ def export_data_csv(rec, parent=None, status_widget=None):
     except Exception:
         print(f"[INFO] Data saved to folder: {out_dir}")
 
-def export_report_flow(rec, current_pdf_path: str | None, parent=None):
+def export_report_flow(rec, current_pdf_path: str | None, selected_template: str | None = None, parent=None):
     """
     Complete report export workflow:
-    1. Select/remember template file
+    1. Use pre-selected template or auto-detect from templates folder
     2. Choose output folder
     3. Generate graph images
     4. Process template and save report
     5. Insert graphs into XLSX if applicable
+    
+    Logic: 
+    - If selected_template is provided, use it directly
+    - If no template selected, auto-detect from templates folder
+    - If only 1 template file in templates/, use it automatically
+    - If multiple templates, ask user to choose
+    - User can modify templates or add new ones anytime
     """
     cfg = Config()
-    tpl_path = cfg.get_last_template()
-    if not tpl_path or not os.path.exists(tpl_path):
-        tpl_path, _ = QFileDialog.getOpenFileName(
-            parent, 
-            "Choose template file (CSV or XLSX)",
-            os.path.join(os.getcwd(), "templates"),
-            "Templates (*.csv *.xlsx);;All Files (*)"
-        )
-        if not tpl_path:
-            QMessageBox.information(parent, "No template", "No template selected. Export cancelled.")
-            return
-        cfg.set_last_template(tpl_path)
+    templates_dir = os.path.join(os.getcwd(), "templates")
+    os.makedirs(templates_dir, exist_ok=True)
+    
+    # If template is pre-selected, use it
+    if selected_template and os.path.exists(selected_template):
+        print(f"[DEBUG] Using pre-selected template: {selected_template}")
+        tpl_path = selected_template
+    else:
+        # Try to load from config (for remembered template)
+        saved_template = cfg.get_last_template()
+        if saved_template and os.path.exists(saved_template):
+            print(f"[DEBUG] Using saved template from config: {saved_template}")
+            tpl_path = saved_template
+        else:
+            print(f"[DEBUG] No template saved, auto-detecting...")
+            # Auto-detect templates in folder
+            import glob
+            template_files = []
+            for ext in ['*.xlsx', '*.csv', '*.xlsm', '*.xltx']:
+                template_files.extend(glob.glob(os.path.join(templates_dir, ext)))
+            
+            if len(template_files) == 0:
+                # No templates found, ask user to select
+                QMessageBox.information(parent, "No template found", 
+                    f"No template files found in '{templates_dir}' folder.\\n"
+                    "Please add a template file (.xlsx or .csv) to the templates folder.")
+                return
+            elif len(template_files) == 1:
+                # Only 1 template, use it automatically
+                tpl_path = template_files[0]
+            else:
+                # Multiple templates, ask user to choose
+                tpl_path, _ = QFileDialog.getOpenFileName(
+                    parent, 
+                    f"Choose template file ({len(template_files)} templates found)",
+                    templates_dir,
+                    "Templates (*.csv *.xlsx *.xlsm *.xltx);;All Files (*)"
+                )
+                if not tpl_path:
+                    QMessageBox.information(parent, "No template", "No template selected. Export cancelled.")
+                    return
 
     tpl_fname = os.path.basename(tpl_path)
     ext = os.path.splitext(tpl_fname)[1].lower()

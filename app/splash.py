@@ -15,6 +15,16 @@ Mô tả: Tạo màn hình splash hiệu ứng glass với background blur và t
 """
 
 from __future__ import annotations
+import os
+import sys
+
+# PyInstaller support: get the base path for bundled resources
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # Running as compiled executable
+    BASE_PATH = sys._MEIPASS
+else:
+    # Running as script
+    BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 from PySide6.QtCore import Qt, QTimer, QRect
 from PySide6.QtGui import (
@@ -50,7 +60,8 @@ class SplashScreen(QDialog):
         # allow transparency
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        self.setWindowIcon(QIcon("app/image/icon.png"))
+        icon_path = os.path.join(BASE_PATH, "app/image/icon.png")
+        self.setWindowIcon(QIcon(icon_path))
 
         # ========== BACKGROUND (blurred screenshot) ==========
         self._background_lbl = QLabel(self)
@@ -110,7 +121,8 @@ class SplashScreen(QDialog):
         )
 
         icon_lbl = QLabel(self.content)
-        icon_pix = QPixmap("app/image/logo.png")
+        logo_path = os.path.join(BASE_PATH, "app/image/logo.png")
+        icon_pix = QPixmap(logo_path)
         if not icon_pix.isNull():
             icon_lbl.setPixmap(icon_pix.scaledToWidth(150, Qt.SmoothTransformation))
             icon_lbl.setAlignment(Qt.AlignCenter)

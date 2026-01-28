@@ -1,0 +1,29 @@
+# Cython generated files
+*.c
+*.so
+*.pyd
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+output_data/
+graph/
+*.xlsx
+*.csv
+*.pdf

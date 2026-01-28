@@ -20,6 +20,14 @@ import sys
 import platform
 from typing import Optional
 
+# PyInstaller support: get the base path for bundled resources
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # Running as compiled executable
+    BASE_PATH = sys._MEIPASS
+else:
+    # Running as script
+    BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
@@ -35,6 +43,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QTextBrowser,
     QPushButton,
+    QFileDialog,
 )
 
 from app.ui.top_controls import TopControls
@@ -52,14 +61,19 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Flatness PDF -> CSV / Report")
         self.resize(900, 700)
 
-        icon = QIcon("app/image/icon.png")
+        icon_path = os.path.join(BASE_PATH, "app/image/icon.png")
+        icon = QIcon(icon_path)
         self.setWindowIcon(icon)
 
         self.current_record = None
         self.current_pdf_path: Optional[str] = None
+        self.selected_template: Optional[str] = None  # Store selected template path
 
         self.config = Config(CONFIG_FILENAME)
         self.last_open_dir = self.config.get_last_open_dir()
+        
+        # Load previously selected template if it exists
+        self.selected_template = self.config.get_last_template()
 
         # Menubar
         self._build_menubar()
@@ -73,10 +87,16 @@ class MainWindow(QMainWindow):
             on_open_recent=self.on_open_recent,
             on_export_data=self.on_export_data,
             on_export_report=self.on_export_report,
-            on_adjust_layout=self.on_adjust_layout,
+            on_select_template=self.on_select_template,
+            on_manage_templates=self.on_manage_templates,
             on_show_flatness=self.on_show_flatness,
             config=self.config
         )
+        
+        # Update template label with saved template if exists
+        if self.selected_template and os.path.exists(self.selected_template):
+            tpl_name = os.path.basename(self.selected_template)
+            self.top_controls.update_template_label(tpl_name)
 
         # layout
         splitter = QSplitter(Qt.Horizontal)
@@ -140,8 +160,11 @@ class MainWindow(QMainWindow):
         """Clear current record and views."""
         self.current_record = None
         self.current_pdf_path = None
+        self.selected_template = None
+        self.config.clear_last_template()  # Remove template from config too
         self.header_view.clear()
         self.result_view.clear()
+        self.top_controls.update_template_label(None)
         self.status_widget.set_status("CLEARED")
 
     def on_export_data(self):
@@ -156,7 +179,59 @@ class MainWindow(QMainWindow):
         if not self.current_record:
             self.status_widget.start_red_blink("PLEASE IMPORT DATA FIRST")
             return
-        export_report_flow(self.current_record, current_pdf_path=self.current_pdf_path, parent=self)
+        
+        # Check if template is selected
+        if not self.selected_template:
+            self.status_widget.start_red_blink("PLEASE SELECT TEMPLATE FIRST")
+            return
+        
+        export_report_flow(self.current_record, current_pdf_path=self.current_pdf_path, 
+                          selected_template=self.selected_template, parent=self)
+
+    def on_select_template(self):
+        """Select a template file for report export."""
+        import glob
+        templates_dir = os.path.join(os.getcwd(), "templates")
+        os.makedirs(templates_dir, exist_ok=True)
+        
+        # Find all template files
+        template_files = []
+        for ext in ['*.xlsx', '*.csv', '*.xlsm', '*.xltx']:
+            template_files.extend(glob.glob(os.path.join(templates_dir, ext)))
+        
+        if not template_files:
+            QMessageBox.information(self, "No templates",
+                f"No template files found in '{templates_dir}'.\\n"
+                "Please add template files (.xlsx, .csv, .xlsm, .xltx) to the templates folder.")
+            return
+        
+        # Show file dialog to select template
+        tpl_path, _ = QFileDialog.getOpenFileName(
+            self,
+            f"Select Report Template ({len(template_files)} found)",
+            templates_dir,
+            "Templates (*.xlsx *.csv *.xlsm *.xltx);;All Files (*)"
+        )
+        
+        if tpl_path:
+            self.selected_template = tpl_path
+            self.config.set_last_template(tpl_path)  # Save to config
+            tpl_name = os.path.basename(tpl_path)
+            self.status_widget.set_status(f"✓ Template selected: {tpl_name}")
+            self.top_controls.update_template_label(tpl_name)
+        else:
+            self.status_widget.set_status("No template selected")
+
+    def on_manage_templates(self):
+        """Open templates folder for managing templates."""
+        from app.utils import open_folder
+        templates_dir = os.path.join(os.getcwd(), "templates")
+        os.makedirs(templates_dir, exist_ok=True)
+        try:
+            open_folder(templates_dir)
+            self.status_widget.set_status("Opened templates folder")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to open templates folder:\n{e}")
 
     def on_adjust_layout(self):
         from app.utils import open_folder
